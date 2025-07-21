@@ -57,7 +57,7 @@ cd speaker-diarization-demo
 
 ```bash
 #py -3.8 -m venv bd   # 最好python3.8下运行
-pip install -r requirements.txt
+pip install -r requirement_win.txt
 ```
 
 ### 3. 获取模型访问权限
@@ -158,7 +158,7 @@ cd speaker-diarization-demo
 
 ```bash
 #py -3.8 -m venv bd   # test run in python3.8 
-pip install -r requirements.txt
+pip install -r requirement_win.txt
 ```
 
 ### 3. Get Model Access Token
