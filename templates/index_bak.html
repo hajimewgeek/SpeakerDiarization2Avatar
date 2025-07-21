@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>Speaker Diarization Demo</title>
+</head>
+<body>
+    <h2>Step 1: 上传视频进行说话人分离</h2>
+    <form action="/" method="POST" enctype="multipart/form-data">
+        <div>
+            <label>上传视频:
+                <input type="file" name="video" accept="video/*,audio/wav" required />
+            </label>
+        </div>
+        <div>
+            <label>说话人数量（可选）:
+                <input type="number" name="num_speakers" min="1" placeholder="不填则自动推断">
+            </label>
+        </div>
+        <button type="submit">上传并分析</button>
+    </form>
+
+    {% if timeline_path %}
+    <h3>说话人时间轴：</h3>
+    <img src="{{ url_for('static', filename=timeline_path) }}" alt="Timeline" width="800" />
+    {% endif %}
+
+    {% if allow_avatar_upload or output_video or column_video %}
+    <h2>Step 2: 上传头像并生成视频</h2>
+    <form action="/upload_avatars" method="POST" enctype="multipart/form-data">
+        <input type="hidden" name="video_path" value="{{ video_path }}">
+        <div id="avatar-list">
+            {% if speaker_ids %}
+                {% for sid in speaker_ids %}
+                <div>
+                    <label>{{ sid }} 头像:
+                        <input type="file" name="avatars" accept="image/*">
+                    </label>
+                    <input type="hidden" name="avatar_speaker_ids" value="{{ sid.split('_')[1] }}">
+                </div>
+                {% endfor %}
+            {% else %}
+                <p>尚未检测到说话人，请先上传视频。</p>
+            {% endif %}
+        </div>
+        <button type="submit">提交头像并生成视频</button>
+    </form>
+    {% endif %}
+
+    {% if output_video or column_video %}
+    <h2>生成的视频预览</h2>
+    {% if output_video %}
+      <h3>动态高度版本：</h3>
+      <video controls width="640" height="360">
+        <source src="{{ url_for('output_video', filename=output_video) }}" type="video/mp4">
+        您的浏览器不支持 video 标签。
+      </video>
+    {% endif %}
+
+    {% if column_video %}
+      <h3>固定列亮/暗版本：</h3>
+      <video controls width="640" height="360">
+        <source src="{{ url_for('output_video', filename=column_video) }}" type="video/mp4">
+        您的浏览器不支持 video 标签。
+      </video>
+    {% endif %}
+
+        {% if row_video %}
+      <h3>水平排列版本：</h3>
+      <video controls width="640" height="360">
+        <source src="{{ url_for('output_video', filename=row_video) }}" type="video/mp4">
+        您的浏览器不支持 video 标签。
+      </video>
+    {% endif %}
+
+    {% endif %}
+
+</body>
+</html>

@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>Speaker Diarization Demo</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <style>
+        :root {
+            --bg-color: #f8f8f8;
+            --text-color: #333;
+            --container-bg: #fff;
+            --border-color: #ccc;
+            --accent-color: #4CAF50;
+            --accent-hover: #45a049;
+        }
+        body.dark {
+            --bg-color: #1e1e1e;
+            --text-color: #ddd;
+            --container-bg: #2a2a2a;
+            --border-color: #555;
+            --accent-color: #6ccf6f;
+            --accent-hover: #57ba5a;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+        }
+        .top-bar {
+            text-align: right;
+            padding: 10px 20px;
+            background: var(--container-bg);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .theme-btn,
+        .nav-btn {
+            background: var(--accent-color);
+            color: white;
+            padding: 6px 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            margin-left: 8px;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .theme-btn:hover,
+        .nav-btn:hover {
+            background: var(--accent-hover);
+            color: #fff;
+        }
+
+        .container {
+            width: 900px;
+            max-width: 95%;
+            margin: 20px auto;
+            background: var(--container-bg);
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        h1.site-title {
+            margin-top: 0;
+            margin-bottom: 5px;
+            font-size: 24px;
+            font-weight: normal;
+        }
+        p.site-desc {
+            margin-top: 0;
+            margin-bottom: 20px;
+            font-size: 14px;
+            color: var(--text-color);
+            opacity: 0.85;
+        }
+        h2, h3 {
+            margin: 10px 0;
+            font-weight: normal;
+        }
+        form {
+            margin-bottom: 20px;
+        }
+        input[type="file"], input[type="number"], button {
+            margin: 5px 0;
+            padding: 6px 10px;
+            font-size: 14px;
+        }
+        button {
+            background: var(--accent-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        button:hover:not(:disabled) {
+            background: var(--accent-hover);
+        }
+        button:disabled {
+            background: #999;
+            cursor: not-allowed;
+        }
+        .timeline img {
+            max-width: 100%;
+            height: auto;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+        }
+        /* 视频容器：并排三列 */
+        .video-container {
+            display: flex;
+            gap: 15px;
+            justify-content: space-between;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+        .video-item {
+            flex: 1 1 30%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .video-item h3 {
+            font-size: 14px;
+            margin-bottom: 5px;
+            text-align: center;
+        }
+        .video-item video {
+            width: 100%;
+            max-width: 100%;
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+        }
+
+        /* 转圈加载动画 */
+        .btn-loading {
+            display: none;
+            border: 3px solid rgba(255, 255, 255, 0.6);
+            border-top: 3px solid white;
+            border-radius: 50%;
+            width: 16px;
+            height: 16px;
+            animation: spin 1s linear infinite;
+            margin-left: 8px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="top-bar">
+        <!-- 主题切换 -->
+        <a id="BILIBILILink" class="nav-btn" href="https://github.com/yourname/speaker-diarization-demo" target="_blank" rel="noopener noreferrer">
+            bilibili
+        </a>
+        <button id="themeToggleBtn" class="theme-btn" type="button" onclick="toggleTheme()">
+            Dark theme
+        </button>
+        <!-- 语言切换 -->
+        <button id="langToggleBtn" class="theme-btn" type="button" onclick="toggleLang()">
+            Chinese lang
+        </button>
+        <!-- GitHub 导航 -->
+        <a id="githubLink" class="nav-btn" href="https://github.com/yourname/speaker-diarization-demo" target="_blank" rel="noopener noreferrer">
+            GitHub
+        </a>
+
+    </div>
+
+    <div class="container">
+        <h1 class="site-title">Speaker Diarization to Avatar Video</h1>
+        <p class="site-desc">
+            Convert speaker separation to video — upload audio/video, run speaker diarization, and generate a video with avatar visualization.
+        </p>
+
+        <h2>Step 1: Upload Video/Audio for Speaker Diarization</h2>
+        <form id="uploadForm" action="/" method="POST" enctype="multipart/form-data">
+            <div>
+                <label>Upload Video or Audio:
+                    <input type="file" name="video" accept="video/*,audio/wav" required />
+                </label>
+            </div>
+            <div>
+                <label>Number of Speakers (optional):
+                    <input type="number" name="num_speakers" min="1" placeholder="Leave empty to auto detect">
+                </label>
+            </div>
+            <button type="submit" id="uploadSubmitBtn">
+                <span class="btn-text">Upload & Analyze</span>
+                <span class="btn-loading"></span>
+            </button>
+        </form>
+
+        {% if timeline_path %}
+        <div class="timeline">
+            <h3>Speaker Timeline:</h3>
+            <img src="{{ url_for('static', filename=timeline_path) }}" alt="Timeline" />
+        </div>
+        {% endif %}
+
+        {% if allow_avatar_upload or output_video or column_video or row_video %}
+        <h2>Step 2: Upload Avatars and Generate Video</h2>
+        <form id="avatarForm" action="/upload_avatars" method="POST" enctype="multipart/form-data" class="avatar-upload">
+            <input type="hidden" name="video_path" value="{{ video_path }}">
+            <div id="avatar-list">
+                {% if speaker_ids %}
+                    {% for sid in speaker_ids %}
+                    <div>
+                        <label>Speaker {{ sid }} Avatar:
+                            <input type="file" name="avatars" accept="image/*">
+                        </label>
+                        <input type="hidden" name="avatar_speaker_ids" value="{{ sid.split('_')[1] }}">
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p>No speakers detected yet. Please upload a video first.</p>
+                {% endif %}
+            </div>
+            <button type="submit" id="avatarSubmitBtn">
+                <span class="btn-text">Submit Avatars & Generate</span>
+                <span class="btn-loading"></span>
+            </button>
+        </form>
+        {% endif %}
+
+        {% if output_video or column_video or row_video %}
+        <h2>Generated Video Preview</h2>
+        <div class="video-container">
+            {% if output_video %}
+              <div class="video-item">
+                  <h3>Dynamic Height Version</h3>
+                  <video controls>
+                    <source src="{{ url_for('output_video', filename=output_video) }}" type="video/mp4">
+                  </video>
+              </div>
+            {% endif %}
+
+            {% if column_video %}
+              <div class="video-item">
+                  <h3>Fixed Column Light/Dark Version</h3>
+                  <video controls>
+                    <source src="{{ url_for('output_video', filename=column_video) }}" type="video/mp4">
+                  </video>
+              </div>
+            {% endif %}
+
+            {% if row_video %}
+              <div class="video-item">
+                  <h3>Horizontal Arrangement Version</h3>
+                  <video controls>
+                    <source src="{{ url_for('output_video', filename=row_video) }}" type="video/mp4">
+                  </video>
+              </div>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+
+    <script>
+        const THEME_KEY = 'sdemo_theme';  // localStorage key
+
+        function applyTheme(mode) {
+            if (mode === 'dark') {
+                document.body.classList.add('dark');
+                document.getElementById('themeToggleBtn').textContent = 'Light theme';
+            } else {
+                document.body.classList.remove('dark');
+                document.getElementById('themeToggleBtn').textContent = 'Dark theme';
+            }
+            localStorage.setItem(THEME_KEY, mode);
+        }
+
+        function toggleTheme() {
+            const isDark = document.body.classList.contains('dark');
+            applyTheme(isDark ? 'light' : 'dark');
+        }
+
+        function toggleLang() {
+            const currentUrl = new URL(window.location.href);
+            const lang = currentUrl.searchParams.get('lang');
+            if (lang === 'en') {
+                currentUrl.searchParams.set('lang', 'zh');
+            } else {
+                currentUrl.searchParams.set('lang', 'en');
+            }
+            window.location.href = currentUrl.toString();
+        }
+
+        // 初始化：读取保存的主题；若没有，保持浅色
+        document.addEventListener('DOMContentLoaded', () => {
+            const saved = localStorage.getItem(THEME_KEY);
+            if (saved === 'dark') {
+                applyTheme('dark');
+            } else {
+                applyTheme('light');
+            }
+
+            // 绑定 loading 效果
+            bindSubmitLoading('uploadForm', 'uploadSubmitBtn');
+            bindSubmitLoading('avatarForm', 'avatarSubmitBtn');
+        });
+
+        // 通用：绑定提交事件 -> 显示按钮加载动画 -> 延迟提交
+        function bindSubmitLoading(formId, btnId) {
+            const form = document.getElementById(formId);
+            if (!form) return;
+
+            form.addEventListener('submit', function(e) {
+                const btn = document.getElementById(btnId);
+                if (!btn) return;
+                startBtnLoading(btn);
+                // 阻止默认立即提交，让动画先渲染
+                e.preventDefault();
+                setTimeout(() => form.submit(), 20);
+            });
+        }
+
+        function startBtnLoading(btn) {
+            const btnText = btn.querySelector('.btn-text');
+            const btnLoading = btn.querySelector('.btn-loading');
+            btn.disabled = true;
+            if (btnText) btnText.style.display = 'none';
+            if (btnLoading) btnLoading.style.display = 'inline-block';
+        }
+    </script>
+</body>
+</html>
