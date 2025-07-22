@@ -2,7 +2,7 @@
 import os
 os.environ["HF_ENDPOINT"] = "https://hf-mirror.com"
 # notice proxy using. delete it if not need
-#os.environ["HTTPS_PROXY"] = "http://127.0.0.1:10809"
+#os.environ["HTTPS_PROXY"] = "http://127.0.0.1:10809"  # your proxy port
 #os.environ["HTTP_PROXY"] = "http://127.0.0.1:10809"
 
 import uuid
@@ -13,6 +13,7 @@ from moviepy.editor import VideoFileClip
 from pyannote.audio import Pipeline
 from PIL import Image, ImageDraw, ImageEnhance
 import torch
+from moviepy.editor import VideoClip
 
 UPLOAD_FOLDER = 'uploads'
 AVATAR_FOLDER = 'avatars'
@@ -76,9 +77,6 @@ def load_avatars(video_basename):
 
 # ---------------- 原动态高度版本 ----------------
 def generate_avatar_video(timeline, avatar_data, duration, fps=25):
-    from moviepy.editor import VideoClip
-    from PIL import Image
-
     avatar_size = (200, 200)
 
     # 预计算最大同时说话人数
@@ -110,7 +108,7 @@ def generate_avatar_video(timeline, avatar_data, duration, fps=25):
                 except:
                     continue
 
-        bg_color = (0, 0, 0, 0)
+        bg_color = (0, 255, 0, 255)  # 绿色背景
         img = Image.new("RGBA", (frame_width, frame_height), bg_color)
 
         for i, sid in enumerate(sorted(speakers_on)):
@@ -124,7 +122,7 @@ def generate_avatar_video(timeline, avatar_data, duration, fps=25):
 
     return VideoClip(make_frame, duration=duration).set_fps(fps).set_duration(duration)
 
-# ---------------- 新的固定列版本 ----------------
+# ---------------- 工具函数 ----------------
 def parse_speaker_id(label):
     if isinstance(label, str):
         m = re.search(r'(\d+)', label)
@@ -150,12 +148,11 @@ def build_speaker_intervals(timeline):
         speaker_intervals[sid] = [(a, b) for a, b in merged]
     return speaker_intervals
 
+# ---------------- 固定列版 ----------------
 def generate_avatar_column_video(timeline, avatar_data, duration, fps=25,
                                  avatar_size=(200, 200), dim_factor=0.35,
-                                 highlight_factor=1.0, bg_color=(0, 0, 0),
+                                 highlight_factor=1.0, bg_color=(0, 255, 0),
                                  smooth_ms=240):
-    from moviepy.editor import VideoClip
-    from PIL import Image
 
     speaker_intervals = build_speaker_intervals(timeline)
     all_ids = sorted(set(speaker_intervals.keys()) | set(avatar_data.keys()))
@@ -193,8 +190,7 @@ def generate_avatar_column_video(timeline, avatar_data, duration, fps=25,
         return False
 
     def make_frame(t):
-        frame = Image.new("RGBA", (frame_width, frame_height),
-                          bg_color + (255,) if len(bg_color) == 3 else bg_color)
+        frame = Image.new("RGBA", (frame_width, frame_height), (0, 255, 0, 255))  # 绿色背景
         for row, sid in enumerate(all_ids):
             top = row * avatar_size[1]
             active = is_active(sid, t)
@@ -204,12 +200,11 @@ def generate_avatar_column_video(timeline, avatar_data, duration, fps=25,
 
     return VideoClip(make_frame, duration=duration).set_fps(fps)
 
+# ---------------- 横向排列版 ----------------
 def generate_avatar_row_video(timeline, avatar_data, duration, fps=25,
                               avatar_size=(200, 200), dim_factor=0.35,
-                              highlight_factor=1.0, bg_color=(0, 0, 0),
+                              highlight_factor=1.0, bg_color=(0, 255, 0),
                               smooth_ms=240):
-    from moviepy.editor import VideoClip
-    from PIL import Image
 
     speaker_intervals = build_speaker_intervals(timeline)
     all_ids = sorted(set(speaker_intervals.keys()) | set(avatar_data.keys()))
@@ -238,6 +233,24 @@ def generate_avatar_row_video(timeline, avatar_data, duration, fps=25,
     frame_width = avatar_size[0] * len(all_ids)
     frame_height = avatar_size[1]
 
+    def is_active(sid, t):
+        if sid not in padded:
+            return False
+        for s, e in padded[sid]:
+            if s <= t <= e:
+                return True
+        return False
+
+    def make_frame(t):
+        frame = Image.new("RGBA", (frame_width, frame_height), (0, 255, 0, 255))  # 绿色背景
+        for col, sid in enumerate(all_ids):
+            left = col * avatar_size[0]
+            active = is_active(sid, t)
+            img_avatar = bright_versions[sid] if active else dim_versions[sid]
+            frame.paste(img_avatar, (left, 0), img_avatar)
+        return np.array(frame.convert("RGB")).astype(np.uint8)
+
+    return VideoClip(make_frame, duration=duration).set_fps(fps)
     def is_active(sid, t):
         if sid not in padded:
             return False
