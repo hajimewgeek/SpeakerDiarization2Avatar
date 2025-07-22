@@ -13,7 +13,7 @@
   > ⚠️ **注意：该网站非常弱，只能处理 10 秒左右的音频**。
 
 <details>
-<summary>🇨🇳 中文 README</summary>
+<summary>中文 README</summary>
 
 这是一个基于 **[pyannote.audio](https://github.com/pyannote/pyannote-audio)** 的 Web 演示工具，支持 **音频/视频的说话人分离**，并生成带有说话人头像可视化的视频。
 
@@ -109,7 +109,7 @@ python app.py
 </details>
 
 <details>
-<summary>en English README</summary>
+<summary>English README</summary>
 
 This is a **web demo based on [pyannote.audio](https://github.com/pyannote/pyannote-audio)** that supports **speaker diarization for audio/video** and generates videos with speaker avatar visualization.
 
@@ -140,7 +140,7 @@ This is a **web demo based on [pyannote.audio](https://github.com/pyannote/pyann
 
 ## 📺 Demo
 
-* **Bilibili Video**: [BV1a3gWzbEq6](https://www.bilibili.com/video/BV1a3gWzbEq6)
+* **Ytb Video**: [demo video](https://www.youtube.com/watch?v=jXeE4_lJL5M)
 * **Online Demo**: [website](http://010233.xyz)
 
   > ⚠️ **Note: The website is limited and can only process \~10 seconds of audio.**
