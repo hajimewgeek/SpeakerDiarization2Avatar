@@ -56,7 +56,8 @@ cd speaker-diarization-demo
 ### 2. 安装依赖
 
 ```bash
-#py -3.8 -m venv bd   # 最好python3.8下运行
+python -m venv spk  # 最好python3.8下运行, py -3.8 -m venv spk 
+spk\Scripts\activate
 pip install -r requirement_win.txt
 ```
 
@@ -157,7 +158,8 @@ cd speaker-diarization-demo
 ### 2. Install Dependencies
 
 ```bash
-#py -3.8 -m venv bd   # test run in python3.8 
+python -m venv spk  # It's recommended to use Python 3.8. py -3.8 -m venv spk 
+spk\Scripts\activate
 pip install -r requirement_win.txt
 ```
 
